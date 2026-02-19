@@ -1,8 +1,3 @@
-import { RiskLevel } from '../constants/types';
-
-/**
- * Get greeting based on current time of day
- */
 export const getGreeting = (): string => {
   const hour = new Date().getHours();
   
@@ -15,42 +10,21 @@ export const getGreeting = (): string => {
   }
 };
 
-/**
- * Get color class for risk level
- */
-export const getRiskColor = (level: RiskLevel): string => {
-  switch (level) {
-    case 'low':
-      return 'bg-risk-low';
-    case 'medium':
-      return 'bg-risk-medium';
-    case 'high':
-      return 'bg-risk-high';
-    default:
-      return 'bg-gray-400';
-  }
+
+export const formatTime = (date: Date = new Date()): string => {
+  return date.toLocaleTimeString('en-US', { 
+    hour: '2-digit', 
+    minute: '2-digit',
+    hour12: false 
+  });
 };
 
-/**
- * Get text color class for risk level
- */
-export const getRiskTextColor = (level: RiskLevel): string => {
-  switch (level) {
-    case 'low':
-      return 'text-risk-low';
-    case 'medium':
-      return 'text-risk-medium';
-    case 'high':
-      return 'text-risk-high';
-    default:
-      return 'text-gray-400';
-  }
-};
 
-/**
- * Format timestamp to readable format
- */
-export const formatTimestamp = (timestamp: string): string => {
-  // For now, return as is. Will enhance with date-fns later if needed
-  return timestamp;
+export const getRiskColor = (level: 'low' | 'medium' | 'high'): string => {
+  const colors = {
+    low: '#48bb78',
+    medium: '#ed8936',
+    high: '#e53e3e',
+  };
+  return colors[level];
 };

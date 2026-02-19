@@ -1,75 +1,137 @@
 import React from 'react';
-import { View, Text, TouchableOpacity } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { AreaStatus } from '../constants/types';
-import { getRiskTextColor } from '../utils/helpers';
+import { COLORS } from '../constants/colors';
+import { NearbyAreasList } from './NearbyAreasList';
+
+interface NearbyArea {
+  name: string;
+  riskLevel: 'low' | 'medium' | 'high';
+}
 
 interface AreaStatusCardProps {
   areaStatus: AreaStatus;
+  nearbyAreas?: NearbyArea[];
+  showMoreCount?: number;
   onNearbyAreasPress?: () => void;
 }
 
 export const AreaStatusCard: React.FC<AreaStatusCardProps> = ({ 
-  areaStatus, 
+  areaStatus,
+  nearbyAreas = [],
+  showMoreCount,
   onNearbyAreasPress 
 }) => {
-  const { location, riskLevel, lastUpdated } = areaStatus;
-  
-  // Get badge color based on risk level
-  const getBadgeColor = () => {
-    switch (riskLevel) {
+  const getBadgeStyle = () => {
+    switch (areaStatus.riskLevel) {
       case 'low':
-        return 'bg-green-100';
+        return { backgroundColor: '#e6fffa', color: COLORS.riskLow };
       case 'medium':
-        return 'bg-orange-100';
+        return { backgroundColor: '#fffaf0', color: COLORS.riskMedium };
       case 'high':
-        return 'bg-red-100';
-      default:
-        return 'bg-gray-100';
+        return { backgroundColor: '#fee', color: COLORS.riskHigh };
     }
   };
-  
+
+  const badgeStyle = getBadgeStyle();
+
   return (
-    <View className="bg-white rounded-2xl p-5 shadow-sm">
-      {/* Header */}
-      <View className="flex-row items-start justify-between mb-3">
-        <View className="flex-row items-start flex-1">
-          <View className="bg-blue-50 rounded-full p-2 mr-3 mt-1">
-            <Feather name="map-pin" size={18} color="#4299e1" />
-          </View>
-          <View className="flex-1">
-            <Text className="text-gray-700 font-semibold text-base mb-1">
-              Your Area Status
-            </Text>
-            <Text className="text-gray-600 text-sm leading-5">
-              {location}
-            </Text>
-          </View>
-        </View>
-        
-        {/* Risk Badge */}
-        <View className={`${getBadgeColor()} px-3 py-1 rounded-full ml-2`}>
-          <Text className={`${getRiskTextColor(riskLevel)} font-semibold text-xs uppercase`}>
-            {riskLevel}
+    <View style={styles.card}>
+      <View style={styles.header}>
+        <Text style={styles.title}>Your Area Status</Text>
+        <View style={[styles.badge, { backgroundColor: badgeStyle.backgroundColor }]}>
+          <Text style={[styles.badgeText, { color: badgeStyle.color }]}>
+            {areaStatus.riskLevel.toUpperCase()}
           </Text>
         </View>
       </View>
       
-      {/* Last Updated */}
-      <Text className="text-gray-400 text-xs mb-3">
-        Last updated: {lastUpdated}
-      </Text>
-      
-      {/* Nearby Areas Link */}
+      <View style={styles.locationContainer}>
+        <Feather name="map-pin" size={18} color={COLORS.textMedium} />
+        <Text style={styles.locationText}>{areaStatus.location}</Text>
+      </View>
+
+      <Text style={styles.updated}>Last updated: {areaStatus.lastUpdated}</Text>
+
+      {nearbyAreas.length > 0 && (
+        <NearbyAreasList 
+          areas={nearbyAreas}
+          showMoreCount={showMoreCount}
+        />
+      )}
+
       <TouchableOpacity 
+        style={styles.button} 
+        activeOpacity={0.8}
         onPress={onNearbyAreasPress}
-        className="border-t border-gray-100 pt-3"
-        activeOpacity={0.7}
       >
-        <Text className="text-blue-600 text-sm font-medium">
-          Nearby Areas
-        </Text>
+        <Text style={styles.buttonText}>Nearby Areas</Text>
+        <Feather name="chevron-right" size={18} color={COLORS.primary} />
       </TouchableOpacity>
     </View>
   );
 };
+
+const styles = StyleSheet.create({
+  card: {
+    backgroundColor: COLORS.cardBackground,
+    borderRadius: 16,
+    padding: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 3,
+  },
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  title: {
+    color: COLORS.textDark,
+    fontSize: 18,
+    fontWeight: '600',
+  },
+  badge: {
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+    borderRadius: 12,
+  },
+  badgeText: {
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  locationContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  locationText: {
+    color: COLORS.textDark,
+    fontSize: 14,
+    marginLeft: 8,
+    flex: 1,
+  },
+  updated: {
+    color: COLORS.textLighter,
+    fontSize: 12,
+    marginBottom: 16,
+  },
+  button: {
+    backgroundColor: COLORS.gray100,
+    borderRadius: 12,
+    padding: 14,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  buttonText: {
+    color: COLORS.primary,
+    fontSize: 14,
+    fontWeight: '600',
+    marginRight: 4,
+  },
+});

@@ -1,58 +1,111 @@
 import React from 'react';
-import { View, Text } from 'react-native';
-import { Feather, Ionicons } from '@expo/vector-icons';
+import { View, Text, StyleSheet } from 'react-native';
+import { Feather } from '@expo/vector-icons';
 import { WeatherData } from '../constants/types';
+import { COLORS } from '../constants/colors';
 
 interface WeatherCardProps {
   weather: WeatherData;
 }
 
 export const WeatherCard: React.FC<WeatherCardProps> = ({ weather }) => {
-  const { condition, temperature, rainfall, humidity, windSpeed } = weather;
-  
   return (
-    <View className="bg-white rounded-2xl p-5 mb-4 shadow-sm">
-      {/* Header */}
-      <View className="flex-row items-center justify-between mb-4">
-        <View className="flex-row items-center">
-          <Feather name="info" size={20} color="#718096" className="mr-2" />
-          <View className="ml-2">
-            <Text className="text-gray-700 font-semibold text-base">Today's Weather</Text>
-            <Text className="text-gray-500 text-sm">{condition}</Text>
-          </View>
+    <View style={styles.card}>
+      <View style={styles.header}>
+        <Feather name="cloud" size={24} color={COLORS.primary} />
+        <View style={styles.headerText}>
+          <Text style={styles.condition}>{weather.condition}</Text>
+          <Text style={styles.temperature}>{weather.temperature}°C</Text>
         </View>
-        <Text className="text-gray-800 text-3xl font-bold">{temperature}°C</Text>
       </View>
       
-      {/* Weather Metrics */}
-      <View className="flex-row justify-between pt-4 border-t border-gray-100">
+      <View style={styles.metricsContainer}>
         {/* Rainfall */}
-        <View className="items-center flex-1">
-          <View className="bg-red-50 rounded-full p-2 mb-2">
-            <Ionicons name="water" size={18} color="#e53e3e" />
+        <View style={styles.metric}>
+          <View style={[styles.metricIcon, { backgroundColor: COLORS.blue }]}>
+            <Feather name="droplet" size={16} color={COLORS.white} />
           </View>
-          <Text className="text-gray-800 font-semibold text-base">{rainfall}%</Text>
-          <Text className="text-gray-500 text-xs">Rainfall</Text>
+          <Text style={styles.metricLabel}>Rainfall</Text>
+          <Text style={styles.metricValue}>{weather.rainfall}%</Text>
         </View>
-        
+
         {/* Humidity */}
-        <View className="items-center flex-1">
-          <View className="bg-green-50 rounded-full p-2 mb-2">
-            <Ionicons name="water-outline" size={18} color="#48bb78" />
+        <View style={styles.metric}>
+          <View style={[styles.metricIcon, { backgroundColor: COLORS.purple }]}>
+            <Feather name="activity" size={16} color={COLORS.white} />
           </View>
-          <Text className="text-gray-800 font-semibold text-base">{humidity}%</Text>
-          <Text className="text-gray-500 text-xs">Humidity</Text>
+          <Text style={styles.metricLabel}>Humidity</Text>
+          <Text style={styles.metricValue}>{weather.humidity}%</Text>
         </View>
-        
-        {/* Wind */}
-        <View className="items-center flex-1">
-          <View className="bg-blue-50 rounded-full p-2 mb-2">
-            <Feather name="wind" size={18} color="#4299e1" />
+
+        {/* Wind Speed */}
+        <View style={styles.metric}>
+          <View style={[styles.metricIcon, { backgroundColor: COLORS.cyan }]}>
+            <Feather name="wind" size={16} color={COLORS.white} />
           </View>
-          <Text className="text-gray-800 font-semibold text-base">{windSpeed} km/h</Text>
-          <Text className="text-gray-500 text-xs">Wind</Text>
+          <Text style={styles.metricLabel}>Wind</Text>
+          <Text style={styles.metricValue}>{weather.windSpeed} km/h</Text>
         </View>
       </View>
     </View>
   );
 };
+
+const styles = StyleSheet.create({
+  card: {
+    backgroundColor: COLORS.cardBackground,
+    borderRadius: 16,
+    padding: 20,
+    marginBottom: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 3,
+  },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  headerText: {
+    marginLeft: 12,
+    flex: 1,
+  },
+  condition: {
+    color: COLORS.textDark,
+    fontSize: 18,
+    fontWeight: '600',
+  },
+  temperature: {
+    color: COLORS.primary,
+    fontSize: 32,
+    fontWeight: 'bold',
+  },
+  metricsContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  metric: {
+    alignItems: 'center',
+    flex: 1,
+  },
+  metricIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 8,
+  },
+  metricLabel: {
+    color: COLORS.textLight,
+    fontSize: 12,
+    marginBottom: 4,
+  },
+  metricValue: {
+    color: COLORS.textDark,
+    fontSize: 16,
+    fontWeight: '600',
+  },
+});

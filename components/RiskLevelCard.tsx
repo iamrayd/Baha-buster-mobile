@@ -1,7 +1,7 @@
 import React from 'react';
-import { View, Text, TouchableOpacity } from 'react-native';
-import { Feather } from '@expo/vector-icons';
+import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { RiskLevelInfo } from '../constants/types';
+import { COLORS } from '../constants/colors';
 import { getRiskColor } from '../utils/helpers';
 
 interface RiskLevelCardProps {
@@ -10,34 +10,69 @@ interface RiskLevelCardProps {
 }
 
 export const RiskLevelCard: React.FC<RiskLevelCardProps> = ({ riskInfo, onPress }) => {
-  const { level, message, lastUpdated } = riskInfo;
+  const backgroundColor = getRiskColor(riskInfo.level);
   
   return (
-    <TouchableOpacity
-      className={`${getRiskColor(level)} rounded-2xl p-5 mb-4 shadow-sm`}
+    <TouchableOpacity 
+      style={[styles.card, { backgroundColor }]} 
+      activeOpacity={0.9}
       onPress={onPress}
-      activeOpacity={0.8}
     >
-      <View className="flex-row items-center justify-between mb-3">
-        <View className="flex-row items-center flex-1">
-          <View className="bg-white/30 rounded-full p-2 mr-3">
-            <Feather name="check" size={20} color="white" />
-          </View>
-          <View className="flex-1">
-            <Text className="text-white/80 text-xs mb-1">Current Risk Level</Text>
-            <Text className="text-white text-2xl font-bold uppercase">{level}</Text>
-          </View>
-        </View>
-        <Feather name="chevron-right" size={24} color="white" />
+      <View style={styles.header}>
+        <Text style={styles.title}>Current Risk Level</Text>
+        <Text style={styles.time}>{riskInfo.lastUpdated}</Text>
       </View>
       
-      <Text className="text-white/90 text-sm leading-5 mb-2">
-        {message}
-      </Text>
+      <View style={styles.levelContainer}>
+        <View style={styles.badge}>
+          <Text style={styles.badgeText}>{riskInfo.level.toUpperCase()}</Text>
+        </View>
+      </View>
       
-      <Text className="text-white/60 text-xs">
-        Last updated: {lastUpdated}
-      </Text>
+      <Text style={styles.message}>{riskInfo.message}</Text>
     </TouchableOpacity>
   );
 };
+
+const styles = StyleSheet.create({
+  card: {
+    borderRadius: 16,
+    padding: 20,
+    marginBottom: 16,
+  },
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  title: {
+    color: COLORS.white,
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  time: {
+    color: 'rgba(255, 255, 255, 0.9)',
+    fontSize: 12,
+  },
+  levelContainer: {
+    marginBottom: 12,
+  },
+  badge: {
+    backgroundColor: 'rgba(255, 255, 255, 0.25)',
+    alignSelf: 'flex-start',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 20,
+  },
+  badgeText: {
+    color: COLORS.white,
+    fontSize: 20,
+    fontWeight: 'bold',
+  },
+  message: {
+    color: COLORS.white,
+    fontSize: 14,
+    lineHeight: 20,
+  },
+});

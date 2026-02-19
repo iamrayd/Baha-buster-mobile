@@ -1,5 +1,11 @@
 export type RiskLevel = 'low' | 'medium' | 'high';
 
+export interface RiskLevelInfo {
+  level: RiskLevel;
+  message: string;
+  lastUpdated: string;
+}
+
 export interface WeatherData {
   condition: string;
   temperature: number;
@@ -11,11 +17,5 @@ export interface WeatherData {
 export interface AreaStatus {
   location: string;
   riskLevel: RiskLevel;
-  lastUpdated: string;
-}
-
-export interface RiskLevelInfo {
-  level: RiskLevel;
-  message: string;
   lastUpdated: string;
 }

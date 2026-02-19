@@ -1,18 +1,20 @@
 import React from 'react';
 import { Tabs } from 'expo-router';
 import { Feather } from '@expo/vector-icons';
+import { COLORS } from '../../constants/colors';
+
 
 export default function TabLayout() {
   return (
     <Tabs
       screenOptions={{
         headerShown: false,
-        tabBarActiveTintColor: '#2c5282',
-        tabBarInactiveTintColor: '#a0aec0',
+        tabBarActiveTintColor: COLORS.primary,
+        tabBarInactiveTintColor: COLORS.textLighter,
         tabBarStyle: {
-          backgroundColor: 'white',
+          backgroundColor: COLORS.white,
           borderTopWidth: 1,
-          borderTopColor: '#e2e8f0',
+          borderTopColor: COLORS.gray200,
           height: 60,
           paddingBottom: 8,
           paddingTop: 8,
