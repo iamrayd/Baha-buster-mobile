@@ -2,18 +2,25 @@ import React, { useState } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, StatusBar, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Feather } from '@expo/vector-icons';
+import { router } from 'expo-router';
 import { RiskLevelCard } from '../../components/RiskLevelCard';
 import { WeatherCard } from '../../components/WeatherCard';
 import { AreaStatusCard } from '../../components/AreaStatusCard';
 import { EmergencyButtons } from '../../components/EmergencyButtons';
 import { RecentAlertsCard, Alert } from '../../components/RecentAlertsCard';
+import { MenuDropdown } from '../../components/MenuDropDown';
 import { getGreeting } from '../../utils/helpers';
 import { RiskLevelInfo, WeatherData, AreaStatus } from '../../constants/types';
 import { COLORS } from '../../constants/colors';
-import { WeatherForecastCard, ForecastDay } from '../../components/WeatherForecastCard';
+import { ForecastDay, WeatherForecastCard } from '@/components/WeatherForecastCard';
 
-
+/**
+ * HomeScreen - Main dashboard of the app
+ * Displays risk level, weather, and area status
+ */
 export default function HomeScreen() {
+  const [menuVisible, setMenuVisible] = useState(false);
+  
   // Mock data - will be replaced with API calls later
   const [riskInfo] = useState<RiskLevelInfo>({
     level: 'low',
@@ -93,25 +100,58 @@ export default function HomeScreen() {
     // TODO: Navigate to detailed forecast
   };
 
+  const handleLogout = () => {
+    console.log('Logging out...');
+    router.replace('/login');
+  };
+
+  const menuItems = [
+    {
+      id: 'profile',
+      label: 'Profile',
+      icon: 'user',
+      onPress: () => console.log('Profile pressed'),
+    },
+    {
+      id: 'settings',
+      label: 'Settings',
+      icon: 'settings',
+      onPress: () => console.log('Settings pressed'),
+    },
+    {
+      id: 'logout',
+      label: 'Logout',
+      icon: 'log-out',
+      onPress: handleLogout,
+      danger: true,
+    },
+  ];
+
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       <StatusBar barStyle="light-content" />
       
       {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity activeOpacity={0.7}>
-          <Feather name="arrow-left" size={24} color={COLORS.white} />
-        </TouchableOpacity>
-        
         <View style={styles.headerContent}>
           <Text style={styles.headerTitle}>Baha-Buster</Text>
           <Text style={styles.headerSubtitle}>Active Alerts</Text>
         </View>
         
-        <TouchableOpacity activeOpacity={0.7}>
+        <TouchableOpacity 
+          activeOpacity={0.7}
+          onPress={() => setMenuVisible(true)}
+        >
           <Feather name="more-vertical" size={24} color={COLORS.white} />
         </TouchableOpacity>
       </View>
+
+      {/* Menu Dropdown */}
+      <MenuDropdown
+        visible={menuVisible}
+        onClose={() => setMenuVisible(false)}
+        items={menuItems}
+      />
 
       {/* Main Content */}
       <ScrollView 
@@ -162,13 +202,14 @@ export default function HomeScreen() {
             alerts={recentAlerts}
             onAlertPress={handleAlertPress}
           />
-
+          
           <WeatherForecastCard 
             forecast={forecast}
             onViewMore={handleViewMoreForecast}
           />
-
         </View>
+
+
       </ScrollView>
     </SafeAreaView>
   );
@@ -189,7 +230,6 @@ const styles = StyleSheet.create({
   },
   headerContent: {
     flex: 1,
-    marginLeft: 16,
   },
   headerTitle: {
     color: COLORS.white,

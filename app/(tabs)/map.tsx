@@ -3,6 +3,8 @@ import { View, Text, StyleSheet, TextInput, TouchableOpacity } from 'react-nativ
 import { SafeAreaView } from 'react-native-safe-area-context';
 import MapView, { Marker } from 'react-native-maps';
 import { Feather } from '@expo/vector-icons';
+import { router } from 'expo-router';
+import { MenuDropdown } from '../../components/MenuDropDown';
 import { COLORS } from '../../constants/colors';
 
 interface RiskMarker {
@@ -21,6 +23,7 @@ export default function MapScreen() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedLayer, setSelectedLayer] = useState<'6hour' | '24hour' | 'historical' | null>('6hour');
   const [showLegend, setShowLegend] = useState(true);
+  const [menuVisible, setMenuVisible] = useState(false);
 
   // Cebu City center
   const initialRegion = {
@@ -57,23 +60,56 @@ export default function MapScreen() {
     }
   };
 
+  const handleLogout = () => {
+    console.log('Logging out...');
+    router.replace('/login');
+  };
+
+  const menuItems = [
+    {
+      id: 'profile',
+      label: 'Profile',
+      icon: 'user',
+      onPress: () => console.log('Profile pressed'),
+    },
+    {
+      id: 'settings',
+      label: 'Settings',
+      icon: 'settings',
+      onPress: () => console.log('Settings pressed'),
+    },
+    {
+      id: 'logout',
+      label: 'Logout',
+      icon: 'log-out',
+      onPress: handleLogout,
+      danger: true,
+    },
+  ];
+
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity activeOpacity={0.7}>
-          <Feather name="arrow-left" size={24} color={COLORS.white} />
-        </TouchableOpacity>
-        
         <View style={styles.headerContent}>
           <Text style={styles.headerTitle}>Interactive Flood Map</Text>
           <Text style={styles.headerSubtitle}>Monitoring Active</Text>
         </View>
         
-        <TouchableOpacity activeOpacity={0.7}>
+        <TouchableOpacity 
+          activeOpacity={0.7}
+          onPress={() => setMenuVisible(true)}
+        >
           <Feather name="more-vertical" size={24} color={COLORS.white} />
         </TouchableOpacity>
       </View>
+
+      {/* Menu Dropdown */}
+      <MenuDropdown
+        visible={menuVisible}
+        onClose={() => setMenuVisible(false)}
+        items={menuItems}
+      />
 
       {/* Search Bar */}
       <View style={styles.searchContainer}>
@@ -218,7 +254,6 @@ const styles = StyleSheet.create({
   },
   headerContent: {
     flex: 1,
-    marginLeft: 16,
   },
   headerTitle: {
     color: COLORS.white,

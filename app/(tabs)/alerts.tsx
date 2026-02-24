@@ -2,131 +2,169 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Feather } from '@expo/vector-icons';
+import { router } from 'expo-router';
 import { COLORS } from '../../constants/colors';
-import { Alert, RecentAlertsCard } from '../../components/RecentAlertsCard';
+import { AlertCard, AlertItem } from '../../components/AlertCard';
+import { MenuDropdown } from '../../components/MenuDropDown';
 
-/**
- * AlertsScreen - Full alerts list and weather forecast
- */
+
 export default function AlertsScreen() {
-  const [alerts] = useState<Alert[]>([
+  const [menuVisible, setMenuVisible] = useState(false);
+  const [alerts, setAlerts] = useState<AlertItem[]>([
     {
       id: '1',
-      title: 'Flash Flood Warning-Lahug Area',
-      severity: 'high',
-      time: '2 hours ago',
+      title: 'Critical Flood Warning',
+      location: 'Downtown Cebu City',
+      description: 'Severe flooding expected in downtown Cebu City. Water levels rising rapidly due to continuous heavy rainfall. Immediate evacuation recommended for low-lying areas.',
+      severity: 'critical',
+      time: '15m ago',
+      status: 'active',
+      acknowledged: false,
     },
     {
       id: '2',
-      title: 'Heavy Rainfall Advisory',
+      title: 'Moderate Weather Alert',
+      location: 'Mandaue City',
+      description: 'Continuous rainfall with potential for localized flooding in Mandaue City. Monitor water levels and avoid low-lying roads.',
       severity: 'moderate',
-      time: '4 hours ago',
-    },
-    {
-      id: '3',
-      title: 'Flood Risk Update -IT Park',
-      severity: 'low',
-      time: '1 day ago',
+      time: '1h ago',
+      status: 'active',
+      acknowledged: false,
     },
   ]);
 
-  const handleAlertPress = (alert: Alert) => {
+  const handleAcknowledge = (alertId: string) => {
+    setAlerts(prev =>
+      prev.map(alert =>
+        alert.id === alertId
+          ? { ...alert, acknowledged: !alert.acknowledged }
+          : alert
+      )
+    );
+  };
+
+  const handleShare = (alertId: string) => {
+    console.log('Share alert:', alertId);
+    // TODO: Implement share functionality
+  };
+
+  const handleAlertPress = (alert: AlertItem) => {
     console.log('Alert pressed:', alert);
     // TODO: Navigate to alert details
   };
 
+  const handleReadAll = () => {
+    setAlerts(prev =>
+      prev.map(alert => ({ ...alert, acknowledged: true }))
+    );
+  };
 
+  const handleLogout = () => {
+    console.log('Logging out...');
+    router.replace('/login');
+  };
+
+  const menuItems = [
+    {
+      id: 'profile',
+      label: 'Profile',
+      icon: 'user',
+      onPress: () => console.log('Profile pressed'),
+    },
+    {
+      id: 'settings',
+      label: 'Settings',
+      icon: 'settings',
+      onPress: () => console.log('Settings pressed'),
+    },
+    {
+      id: 'logout',
+      label: 'Logout',
+      icon: 'log-out',
+      onPress: handleLogout,
+      danger: true,
+    },
+  ];
+
+  const activeAlertsCount = alerts.filter(a => a.status === 'active').length;
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
+      {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity activeOpacity={0.7}>
-          <Feather name="arrow-left" size={24} color={COLORS.white} />
+        <View style={styles.headerContent}>
+          <Text style={styles.headerTitle}>Alert Management</Text>
+          <Text style={styles.headerSubtitle}>
+            {activeAlertsCount} Active Alert{activeAlertsCount !== 1 ? 's' : ''}
+          </Text>
+        </View>
+
+        <TouchableOpacity 
+          activeOpacity={0.7}
+          onPress={() => console.log('Settings pressed')}
+        >
+          <Feather name="settings" size={24} color={COLORS.white} />
         </TouchableOpacity>
         
-        <View style={styles.headerContent}>
-          <Text style={styles.headerTitle}>Baha-Buster</Text>
-          <Text style={styles.headerSubtitle}>Active Alerts</Text>
-        </View>
-        
-        <TouchableOpacity activeOpacity={0.7}>
+        <TouchableOpacity 
+          activeOpacity={0.7} 
+          style={styles.menuButton}
+          onPress={() => setMenuVisible(true)}
+        >
           <Feather name="more-vertical" size={24} color={COLORS.white} />
         </TouchableOpacity>
       </View>
-      
-      <ScrollView 
+
+      {/* Menu Dropdown */}
+      <MenuDropdown
+        visible={menuVisible}
+        onClose={() => setMenuVisible(false)}
+        items={menuItems}
+      />
+
+      {/* Alert List */}
+      <ScrollView
         style={styles.content}
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingBottom: 20 }}
+        contentContainerStyle={{ paddingBottom: 100 }}
       >
-        <View style={styles.section}>
-          <View style={styles.sectionHeader}>
-            <Feather name="bell" size={20} color={COLORS.primary} />
-            <Text style={styles.sectionTitle}>Recent Alerts</Text>
+        {alerts.map((alert) => (
+          <AlertCard
+            key={alert.id}
+            alert={alert}
+            onAcknowledge={handleAcknowledge}
+            onShare={handleShare}
+            onPress={handleAlertPress}
+          />
+        ))}
+
+        {alerts.length === 0 && (
+          <View style={styles.emptyState}>
+            <Feather name="bell-off" size={64} color={COLORS.textLighter} />
+            <Text style={styles.emptyTitle}>No Active Alerts</Text>
+            <Text style={styles.emptyDescription}>
+              You'll be notified when flood risks are detected in your area
+            </Text>
           </View>
-
-          {alerts.map((alert) => (
-            <TouchableOpacity
-              key={alert.id}
-              style={styles.alertItem}
-              activeOpacity={0.7}
-              onPress={() => handleAlertPress(alert)}
-            >
-              <View 
-                style={[
-                  styles.iconContainer, 
-                  { backgroundColor: getSeverityColor(alert.severity) + '15' }
-                ]}
-              >
-                <Feather 
-                  name={getSeverityIcon(alert.severity)} 
-                  size={16} 
-                  color={getSeverityColor(alert.severity)} 
-                />
-              </View>
-              
-              <View style={styles.alertContent}>
-                <Text style={styles.alertTitle} numberOfLines={1}>
-                  {alert.title}
-                </Text>
-                <View style={styles.alertMeta}>
-                  <Text 
-                    style={[
-                      styles.severityBadge, 
-                      { color: getSeverityColor(alert.severity) }
-                    ]}
-                  >
-                    {alert.severity.toUpperCase()}
-                  </Text>
-                  <Text style={styles.alertTime}>{alert.time}</Text>
-                </View>
-              </View>
-
-              <Feather name="circle" size={8} color={getSeverityColor(alert.severity)} />
-            </TouchableOpacity>
-          ))}
-        </View>
+        )}
       </ScrollView>
+
+      {/* Read All Button */}
+      {alerts.some(a => !a.acknowledged) && (
+        <View style={styles.bottomAction}>
+          <TouchableOpacity
+            style={styles.readAllButton}
+            onPress={handleReadAll}
+            activeOpacity={0.8}
+          >
+            <Feather name="check-circle" size={20} color={COLORS.white} />
+            <Text style={styles.readAllText}>Read All</Text>
+          </TouchableOpacity>
+        </View>
+      )}
     </SafeAreaView>
   );
 }
-
-const getSeverityColor = (severity: string) => {
-  switch (severity) {
-    case 'low': return COLORS.riskLow;
-    case 'moderate': return COLORS.riskMedium;
-    case 'high': return COLORS.riskHigh;
-    default: return COLORS.textLight;
-  }
-};
-
-const getSeverityIcon = (severity: string): any => {
-  switch (severity) {
-    case 'high': return 'alert-circle';
-    case 'moderate': return 'alert-triangle';
-    default: return 'info';
-  }
-};
 
 const styles = StyleSheet.create({
   container: {
@@ -139,11 +177,9 @@ const styles = StyleSheet.create({
     paddingVertical: 16,
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
   },
   headerContent: {
     flex: 1,
-    marginLeft: 16,
   },
   headerTitle: {
     color: COLORS.white,
@@ -154,66 +190,61 @@ const styles = StyleSheet.create({
     color: 'rgba(255, 255, 255, 0.7)',
     fontSize: 12,
   },
+  menuButton: {
+    marginLeft: 12,
+  },
   content: {
     flex: 1,
     paddingHorizontal: 16,
     paddingTop: 20,
   },
-  section: {
-    marginBottom: 20,
-  },
-  sectionHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 16,
-  },
-  sectionTitle: {
-    color: COLORS.textDark,
-    fontSize: 18,
-    fontWeight: '600',
-    marginLeft: 8,
-  },
-  alertItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: COLORS.white,
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 12,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    elevation: 2,
-  },
-  iconContainer: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
+  emptyState: {
+    flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    marginRight: 12,
+    paddingVertical: 60,
   },
-  alertContent: {
-    flex: 1,
-  },
-  alertTitle: {
+  emptyTitle: {
     color: COLORS.textDark,
-    fontSize: 14,
-    fontWeight: '500',
-    marginBottom: 4,
+    fontSize: 20,
+    fontWeight: '600',
+    marginTop: 16,
+    marginBottom: 8,
   },
-  alertMeta: {
+  emptyDescription: {
+    color: COLORS.textLight,
+    fontSize: 14,
+    textAlign: 'center',
+    paddingHorizontal: 32,
+  },
+  bottomAction: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    paddingHorizontal: 16,
+    paddingVertical: 20,
+    backgroundColor: COLORS.background,
+    borderTopWidth: 1,
+    borderTopColor: COLORS.gray200,
+  },
+  readAllButton: {
+    backgroundColor: COLORS.primaryDark,
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 16,
+    borderRadius: 12,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 8,
+    elevation: 5,
   },
-  severityBadge: {
-    fontSize: 11,
+  readAllText: {
+    color: COLORS.white,
+    fontSize: 16,
     fontWeight: '600',
-    marginRight: 8,
-  },
-  alertTime: {
-    color: COLORS.textLight,
-    fontSize: 11,
+    marginLeft: 8,
   },
 });
