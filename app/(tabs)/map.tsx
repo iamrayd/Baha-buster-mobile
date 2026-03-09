@@ -1,17 +1,16 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { View, Text, StyleSheet, TextInput, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, TextInput, TouchableOpacity, ActivityIndicator, RefreshControl } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import MapView, { Marker, Polygon } from 'react-native-maps';
 import { Feather } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { MenuDropdown } from '../../components/MenuDropdown';
 import { BarangayDetailModal } from '../../components/BarangayDetailModal';
-import { barangayPolygons, updateBarangayRisk, setRiskLevelsFromAPI, BarangayData } from '../../constants/barangayData';
+import { barangayPolygons, BarangayData } from '../../constants/barangayData';
+import { useFloodData } from '../../hooks/useFloodData';
 import { COLORS } from '../../constants/colors';
 
-/**
- * MapScreen - Interactive flood risk map with barangay heatmap
- */
+
 export default function MapScreen() {
   const mapRef = useRef<MapView>(null);
   const [searchQuery, setSearchQuery] = useState('');
@@ -25,30 +24,23 @@ export default function MapScreen() {
   const initialRegion = {
     latitude: 10.3157,
     longitude: 123.8854,
-    latitudeDelta: 0.15,  
+    latitudeDelta: 0.15, 
     longitudeDelta: 0.15,
   };
 
+  // Fetch flood data from API
+  const { data, loading, error, lastUpdated, refresh } = useFloodData();
+
+  // Use barangay polygons
   const [barangays, setBarangays] = useState(barangayPolygons);
 
-  // Example: Simulate risk level updates (for testing)
-  // Uncomment to test dynamic updates
+  // Update barangays when API data changes
   useEffect(() => {
-    // Simulate API update after 3 seconds
-    const timer = setTimeout(() => {
-      // Update risk levels
-      updateBarangayRisk('Lahug', 'low');
-      updateBarangayRisk('Banilad', 'high');
-      updateBarangayRisk('Talamban', 'medium');
-      
-      // Trigger re-render with updated data
+    if (data) {
+      // Trigger re-render with updated risk levels
       setBarangays([...barangayPolygons]);
-      
-      console.log('Risk levels updated!');
-    }, 3000);
-    
-    return () => clearTimeout(timer);
-  }, []);
+    }
+  }, [data]);
 
   const handleSearch = () => {
     console.log('Search:', searchQuery);
@@ -77,23 +69,23 @@ export default function MapScreen() {
     switch (riskLevel) {
       case 'high':
         return {
-          fillColor: 'rgba(239, 68, 68, 0.4)',   // Red with 40% opacity
+          fillColor: 'rgba(239, 68, 68, 0.4)',   // Red 
           strokeColor: '#ef4444',
         };
       case 'medium':
         return {
-          fillColor: 'rgba(249, 115, 22, 0.4)',  // Orange with 40% opacity
+          fillColor: 'rgba(249, 115, 22, 0.4)',  // Orange 
           strokeColor: '#f97316',
         };
       case 'low':
         return {
-          fillColor: 'rgba(59, 130, 246, 0.4)',  // Blue with 40% opacity
+          fillColor: 'rgba(59, 130, 246, 0.4)',  // Blue 
           strokeColor: '#3b82f6',
         };
       case 'none':
       default:
         return {
-          fillColor: 'rgba(156, 163, 175, 0.3)',  // Gray with 30% opacity
+          fillColor: 'rgba(156, 163, 175, 0.3)',  // Gray 
           strokeColor: '#9ca3af',
         };
     }
@@ -132,7 +124,17 @@ export default function MapScreen() {
       <View style={styles.header}>
         <View style={styles.headerContent}>
           <Text style={styles.headerTitle}>Interactive Flood Map</Text>
-          <Text style={styles.headerSubtitle}>Monitoring Active</Text>
+          <View style={styles.headerSubtitleRow}>
+            {loading && !data && (
+              <ActivityIndicator size="small" color={COLORS.white} style={styles.headerLoader} />
+            )}
+            <Text style={styles.headerSubtitle}>
+              {lastUpdated 
+                ? `Updated ${lastUpdated.toLocaleTimeString()}`
+                : 'Monitoring Active'
+              }
+            </Text>
+          </View>
         </View>
         
         <TouchableOpacity 
@@ -149,6 +151,25 @@ export default function MapScreen() {
         onClose={() => setMenuVisible(false)}
         items={menuItems}
       />
+
+      {/* Loading Banner */}
+      {loading && data && (
+        <View style={styles.loadingBanner}>
+          <ActivityIndicator size="small" color={COLORS.white} />
+          <Text style={styles.loadingText}>Updating flood data...</Text>
+        </View>
+      )}
+
+      {/* Error Banner */}
+      {error && !data && (
+        <View style={styles.errorBanner}>
+          <Feather name="alert-circle" size={16} color={COLORS.white} />
+          <Text style={styles.errorText}>{error}</Text>
+          <TouchableOpacity onPress={refresh} style={styles.retryButton}>
+            <Text style={styles.retryText}>Retry</Text>
+          </TouchableOpacity>
+        </View>
+      )}
 
       {/* Search Bar */}
       <View style={styles.searchContainer}>
@@ -190,47 +211,6 @@ export default function MapScreen() {
           })}
         </MapView>
 
-        {/* Layer Controls - Left */}
-        <View style={styles.layerControls}>
-          <TouchableOpacity 
-            style={[styles.layerButton, selectedLayer === '6hour' && styles.layerButtonActive]}
-            onPress={() => handleLayerToggle('6hour')}
-            activeOpacity={0.8}
-          >
-            <Feather name="clock" size={18} color={selectedLayer === '6hour' ? COLORS.white : COLORS.textDark} />
-            <Text style={[styles.layerText, selectedLayer === '6hour' && styles.layerTextActive]}>
-              6-Hour Precipitation
-            </Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity 
-            style={[styles.layerButton, selectedLayer === '24hour' && styles.layerButtonActive]}
-            onPress={() => handleLayerToggle('24hour')}
-            activeOpacity={0.8}
-          >
-            <Feather name="calendar" size={18} color={selectedLayer === '24hour' ? COLORS.white : COLORS.textDark} />
-            <Text style={[styles.layerText, selectedLayer === '24hour' && styles.layerTextActive]}>
-              24-Hour Forecast
-            </Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity 
-            style={[styles.layerButton, selectedLayer === 'historical' && styles.layerButtonActive]}
-            onPress={() => handleLayerToggle('historical')}
-            activeOpacity={0.8}
-          >
-            <Feather name="database" size={18} color={selectedLayer === 'historical' ? COLORS.white : COLORS.textDark} />
-            <Text style={[styles.layerText, selectedLayer === 'historical' && styles.layerTextActive]}>
-              Historical Data
-            </Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity style={styles.layerButton} activeOpacity={0.8}>
-            <Feather name="layers" size={18} color={COLORS.textDark} />
-            <Text style={styles.layerText}>Topographical View</Text>
-          </TouchableOpacity>
-        </View>
-
         {/* Legend - Right */}
         {showLegend && (
           <View style={styles.legend}>
@@ -265,6 +245,19 @@ export default function MapScreen() {
 
         {/* Controls - Bottom Right */}
         <View style={styles.controls}>
+          <TouchableOpacity 
+            style={styles.controlButton}
+            onPress={refresh}
+            activeOpacity={0.8}
+            disabled={loading}
+          >
+            {loading && data ? (
+              <ActivityIndicator size="small" color={COLORS.primary} />
+            ) : (
+              <Feather name="refresh-cw" size={24} color={COLORS.primary} />
+            )}
+          </TouchableOpacity>
+
           <TouchableOpacity 
             style={styles.controlButton}
             onPress={() => setShowLegend(!showLegend)}
@@ -314,9 +307,61 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: 'bold',
   },
+  headerSubtitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
   headerSubtitle: {
     color: 'rgba(255, 255, 255, 0.7)',
     fontSize: 12,
+  },
+  headerLoader: {
+    marginRight: 6,
+  },
+  loadingBanner: {
+    backgroundColor: COLORS.primary,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    marginHorizontal: 16,
+    marginBottom: 12,
+    borderRadius: 8,
+  },
+  loadingText: {
+    color: COLORS.white,
+    fontSize: 13,
+    marginLeft: 8,
+    fontWeight: '500',
+  },
+  errorBanner: {
+    backgroundColor: COLORS.riskHigh,
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    marginHorizontal: 16,
+    marginBottom: 12,
+    borderRadius: 8,
+  },
+  errorText: {
+    flex: 1,
+    color: COLORS.white,
+    fontSize: 13,
+    marginLeft: 8,
+    fontWeight: '500',
+  },
+  retryButton: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    borderRadius: 6,
+  },
+  retryText: {
+    color: COLORS.white,
+    fontSize: 12,
+    fontWeight: '600',
   },
   searchContainer: {
     backgroundColor: COLORS.white,
