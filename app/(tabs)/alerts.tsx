@@ -5,7 +5,7 @@ import { Feather } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { COLORS } from '../../constants/colors';
 import { AlertCard, AlertItem } from '../../components/AlertCard';
-import { MenuDropdown } from '../../components/MenuDropDown';
+import { MenuDropdown } from '../../components/MenuDropdown';
 
 
 export default function AlertsScreen() {

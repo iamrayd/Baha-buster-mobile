@@ -8,7 +8,7 @@ import { WeatherCard } from '../../components/WeatherCard';
 import { AreaStatusCard } from '../../components/AreaStatusCard';
 import { EmergencyButtons } from '../../components/EmergencyButtons';
 import { RecentAlertsCard, Alert } from '../../components/RecentAlertsCard';
-import { MenuDropdown } from '../../components/MenuDropDown';
+import { MenuDropdown } from '../../components/MenuDropdown';
 import { getGreeting } from '../../utils/helpers';
 import { RiskLevelInfo, WeatherData, AreaStatus } from '../../constants/types';
 import { COLORS } from '../../constants/colors';
